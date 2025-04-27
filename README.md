@@ -1,6 +1,8 @@
-# Simple .Net Obfuscator
+# Simple .Net Obfuscator (for personal use)
 
 A lightweight C# obfuscation tool for .Net applications.
+
+*(It was created this for a proprietary project called Simorgh, a clone of Logicube Falcon device.)*
 
 ## Overview
 
