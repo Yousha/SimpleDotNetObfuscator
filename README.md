@@ -73,4 +73,4 @@ This project is licensed under the **GPL-3.0**. See the [LICENSE](LICENSE) file 
 
 ## Contact
 
-For questions or feedback, please use [issues](https://github.com/yousha/slacksecchk/issues) section.
+For questions or feedback, please use [issues](https://github.com/yousha/SimpleDotNetObfuscator/issues) section.
