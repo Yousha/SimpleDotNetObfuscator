@@ -14,23 +14,35 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v1.2.0
+    - name: Setup NuGet CLI
+      run: |
+        # Download NuGet.exe
+        curl -LO https://dist.nuget.org/win-x86-commandline/v6.9.0/NuGet.exe
+        echo "::add-path::$PWD"
 
     - name: Restore NuGet Packages
       run: |
-        curl -LO https://dist.nuget.org/win-x86-commandline/v6.8.0/nuget.exe
-        ./nuget.exe restore SimpleDotNetObfuscator.sln
+        nuget restore SimpleDotNetObfuscator.sln
 
-    - name: Build Solution (Release)
-      run: msbuild SimpleDotNetObfuscator.sln /p:Configuration=Release /p:Platform="Any CPU" /t:Build /verbosity:minimal
+    - name: Build Solution with MSBuild
+      run: |
+        # Use MSBuild from VS 2022 (pre-installed on Windows runners)
+        $msbuildPath = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\MSBuild.exe"
+        if (-Not (Test-Path $msbuildPath)) {
+          $msbuildPath = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\Professional\MSBuild\Current\Bin\MSBuild.exe"
+        }
+        if (-Not (Test-Path $msbuildPath)) {
+          $msbuildPath = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin\MSBuild.exe"
+        }
+
+        & "$msbuildPath" SimpleDotNetObfuscator.sln /p:Configuration=Release /p:Platform="Any CPU" /t:Build /v:minimal
 
     - name: Run MSTest Tests
       run: |
-        # Discover and run MSTest tests using vstest.console.exe
-        $vsTestPath = &"${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.TestTools.BuildTools -property installationPath
+        # Locate vstest.console.exe
+        $vsTestPath = &"${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -requires Microsoft.VisualStudio.Component.TestTools.BuildTools -property installationPath
         $vstestConsole = Join-Path $vsTestPath "Common7\IDE\Extensions\TestPlatform\vstest.console.exe"
-        
+
         & "$vstestConsole" "SimpleDotNetObfuscator.Tests\bin\Release\SimpleDotNetObfuscator.Tests.dll" --logger:"trx"
 
     - name: Upload Test Results
