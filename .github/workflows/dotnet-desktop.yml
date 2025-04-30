@@ -14,19 +14,16 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Setup NuGet CLI
+    - name: Download NuGet CLI
       run: |
-        # Download NuGet.exe
         curl -LO https://dist.nuget.org/win-x86-commandline/v6.9.0/NuGet.exe
-        echo "::add-path::$PWD"
 
     - name: Restore NuGet Packages
       run: |
-        nuget restore SimpleDotNetObfuscator.sln
+        .\NuGet.exe restore SimpleDotNetObfuscator.sln
 
     - name: Build Solution with MSBuild
       run: |
-        # Use MSBuild from VS 2022 (pre-installed on Windows runners)
         $msbuildPath = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\MSBuild.exe"
         if (-Not (Test-Path $msbuildPath)) {
           $msbuildPath = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\Professional\MSBuild\Current\Bin\MSBuild.exe"
@@ -43,11 +40,15 @@ jobs:
         $vsTestPath = &"${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -requires Microsoft.VisualStudio.Component.TestTools.BuildTools -property installationPath
         $vstestConsole = Join-Path $vsTestPath "Common7\IDE\Extensions\TestPlatform\vstest.console.exe"
 
-        & "$vstestConsole" "SimpleDotNetObfuscator.Tests\bin\Release\SimpleDotNetObfuscator.Tests.dll" --logger:"trx"
+        # Run tests
+        $testDllPath = "SimpleDotNetObfuscator.Tests\bin\Release\SimpleDotNetObfuscator.Tests.dll"
+        Write-Host "Running tests from: $testDllPath"
+        & "$vstestConsole" "$testDllPath" --logger:"trx"
 
     - name: Upload Test Results
       if: always()
       uses: actions/upload-artifact@v4
       with:
         name: test-results
-        path: "**/*.trx"
+        path: |
+          **/*.trx
