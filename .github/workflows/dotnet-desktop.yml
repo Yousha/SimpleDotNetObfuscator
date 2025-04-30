@@ -8,35 +8,31 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: windows-latest  # .NET Framework requires Windows
+    runs-on: windows-latest
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    # Setup build tools
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v1
       
     - name: Setup NuGet
       uses: nuget/setup-nuget@v1
       with:
-        nuget-version: '6.x'  # Modern NuGet for better dependency resolution
+        nuget-version: '6.x'
 
-    # Restore packages (including Mono.Cecil)
     - name: Restore NuGet packages
       run: nuget restore SimpleDotNetObfuscator.sln -PackagesDirectory packages
 
-    # Build with strong-name signing readiness (common for obfuscators)
     - name: Build Release configuration
       run: |
         msbuild SimpleDotNetObfuscator.sln `
           /p:Configuration=Release `
           /p:Platform="Any CPU" `
           /p:OutputPath=bin\Release `
-          /p:AllowUnsafeBlocks=true  # Often needed with Mono.Cecil
+          /p:AllowUnsafeBlocks=true
 
-    # Run tests with detailed logging
     - name: Execute Unit Tests
       run: |
         $testDll = "SimpleDotNetObfuscator.Tests\bin\Release\SimpleDotNetObfuscator.Tests.dll"
@@ -45,18 +41,17 @@ jobs:
           /TestAdapterPath:"packages\MSTest.TestAdapter.2.2.10\build\_common" `
           /ResultsDirectory:TestResults
 
-    # Artifacts (test results + obfuscator binaries)
     - name: Upload Test Results
       if: always()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: test-results
         path: TestResults
 
     - name: Archive Obfuscator Binaries
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: obfuscator-release
         path: |
           SimpleDotNetObfuscator/bin/Release/*
-          !SimpleDotNetObfuscator/bin/Release/*.pdb  # Exclude symbols unless needed
+          !SimpleDotNetObfuscator/bin/Release/*.pdb
