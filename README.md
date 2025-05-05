@@ -1,4 +1,4 @@
-# Simple .Net Obfuscator (for personal use)
+# Simple .Net Obfuscator (Without making the code vulnerable)
 
 A lightweight C# obfuscation tool for .Net applications.
 
@@ -55,7 +55,7 @@ SimpleDotNetObfuscator.exe MyApp.dll MyApp.exe MySource.cs
 -  Does this tool provide code virtualization? No.
 
 -  How do I install dependencies? Install the required **Mono.Cecil** package via NuGet using:
-   Install-Package Mono.Cecil
+   `Install-Package Mono.Cecil`
 
 -  Is this tool safe to use? Yes, but always **test your obfuscated binaries** before deployment to avoid runtime errors.
 
