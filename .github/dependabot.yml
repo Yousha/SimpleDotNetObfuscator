@@ -1,0 +1,10 @@
+version: 2
+updates:
+  - package-ecosystem: "nuget"
+    directory: "/SimpleDotNetObfuscator"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 20
+    target-branch: "main"
+    assignees:
+      - "yousha"
