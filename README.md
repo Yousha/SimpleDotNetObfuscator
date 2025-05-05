@@ -4,6 +4,8 @@ A lightweight C# obfuscation tool for .Net applications.
 
 *(It was created this for a proprietary project called Simorgh, a clone of Logicube Falcon device.)*
 
+[![CodeQL](https://github.com/Yousha/SimpleDotNetObfuscator/actions/workflows/github-code-scanning/codeql/badge.svg?branch=main)](https://github.com/Yousha/SimpleDotNetObfuscator/actions/workflows/github-code-scanning/codeql)
+
 ## Overview
 
 It supports obfuscating `.cs` source files, `.dll` libraries, and `.exe` executables to prevent reverse engineering and tampering.
