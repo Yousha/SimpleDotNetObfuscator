@@ -2,7 +2,7 @@
 
 A lightweight C# obfuscation tool for .Net applications.
 
-*(It was created this for a proprietary project called Simorgh, a clone of Logicube Falcon device.)*
+*(It was created for a proprietary project called Simorgh, a clone of Logicube Falcon device.)*
 
 [![Dependabot Updates](https://github.com/Yousha/SimpleDotNetObfuscator/actions/workflows/dependabot/dependabot-updates/badge.svg?branch=main)](https://github.com/Yousha/SimpleDotNetObfuscator/actions/workflows/dependabot/dependabot-updates) [![CodeQL](https://github.com/Yousha/SimpleDotNetObfuscator/actions/workflows/github-code-scanning/codeql/badge.svg?branch=main)](https://github.com/Yousha/SimpleDotNetObfuscator/actions/workflows/github-code-scanning/codeql)
 
