@@ -1,6 +1,6 @@
-# Simple .Net Obfuscator (Without making the code vulnerable)
+# Simple .NET Obfuscator (Without making the code vulnerable)
 
-A lightweight C# obfuscation tool for .Net applications.
+A lightweight C# obfuscation tool for .NET applications.
 
 *(It was created for a proprietary project called Simorgh, a clone of Logicube Falcon device.)*
 
@@ -20,7 +20,7 @@ It supports obfuscating `.cs` source files, `.dll` libraries, and `.exe` executa
 
 ### Prerequisites
 
--  .Net Framework 4.8 Runtime (https://dotnet.microsoft.com/en-us/download/dotnet-framework/net48)
+-  .NET Framework 4.8 Runtime (https://dotnet.microsoft.com/en-us/download/dotnet-framework/net48)
 -  Mono.Cecil library (nuget Install-Package Mono.Cecil)
 
 ## Usage
@@ -76,3 +76,4 @@ This project is licensed under the **GPL-3.0**. See the [LICENSE](LICENSE) file 
 ## Contact
 
 For questions or feedback, please use [issues](https://github.com/yousha/SimpleDotNetObfuscator/issues) section.
+
