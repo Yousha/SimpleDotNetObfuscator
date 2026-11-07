@@ -37,14 +37,12 @@ namespace SimpleDotNetObfuscator
       /// <param name="args">Command-line arguments specifying file paths to obfuscate.</param>
       internal static void Main(string[] args)
       {
-         Obfuscator.CheckForDebugging(); // Check for debuggers before running.
-
          if (args.Length == 0)
          {
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine(Constants.NAME + " " + Constants.VERSION);
             Console.WriteLine(Constants.DESCRIPTION);
-            Console.WriteLine("Usage: " + Constants.NAME + "<input_file1> [<input_file2>] ...");
+            Console.WriteLine("Usage: " + Constants.NAME + " <input_file1> [<input_file2>] ...");
             Console.ResetColor();
             return;
          }
