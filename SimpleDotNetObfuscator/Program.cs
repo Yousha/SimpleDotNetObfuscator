@@ -1,6 +1,6 @@
 /*
  * Name: SimpleDotNetObfuscator
- * Description: A lightweight C# obfuscation tool for .Net applications.
+ * Description: A small C# source-string encoder for .NET Framework projects.
  * Version: 1.0.0.1
  * Locale: en_International
  * Last update: 2025
@@ -26,7 +26,6 @@ namespace SimpleDotNetObfuscator
 {
    using System;
    using System.IO;
-   using MySoftwarePackager.Libraries;
    using SimpleDotNetObfuscator.Libraries;
 
    internal class Program

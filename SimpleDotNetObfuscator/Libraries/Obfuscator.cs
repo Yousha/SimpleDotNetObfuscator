@@ -1,7 +1,6 @@
 namespace SimpleDotNetObfuscator.Libraries
 {
    using System;
-   using System.Diagnostics;
    using System.IO;
    using System.Linq;
    using System.Text;
@@ -11,7 +10,6 @@ namespace SimpleDotNetObfuscator.Libraries
 
    public sealed class Obfuscator
    {
-      /// <summary>
       /// <summary>
       /// Encodes a string as Base64. This is reversible encoding, not encryption.
       /// </summary>
@@ -95,27 +93,6 @@ namespace SimpleDotNetObfuscator.Libraries
                   break;
             }
             return false;
-         }
-      }
-
-      /// <summary>
-      /// Detects if a debugger is attached.
-      /// </summary>
-      /// <returns>True if a debugger is detected, otherwise false.</returns>
-      public static bool IsDebugging()
-      {
-         return Debugger.IsAttached || Environment.GetEnvironmentVariable("COR_ENABLE_PROFILING") == "1";
-      }
-
-      /// <summary>
-      /// Checks for active debugging and exits if detected.
-      /// </summary>
-      public static void CheckForDebugging()
-      {
-         if (IsDebugging())
-         {
-            Console.WriteLine("Debugger detected! Exiting...");
-            Environment.Exit(-1);
          }
       }
 
