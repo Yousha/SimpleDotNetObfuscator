@@ -1,6 +1,6 @@
-# Simple .NET Obfuscator (Without making the code vulnerable)
+# Simple .NET Obfuscator
 
-A lightweight C# obfuscation tool for .NET applications.
+A small C# source-string encoder for .NET Framework projects. It writes a new `.obf.cs` file and leaves the input unchanged.
 
 *(It was created for a proprietary project called Simorgh, a clone of Logicube Falcon device.)*
 
@@ -8,20 +8,22 @@ A lightweight C# obfuscation tool for .NET applications.
 
 ## Overview
 
-It supports obfuscating `.cs` source files, `.dll` libraries, and `.exe` executables to prevent reverse engineering and tampering.
+It rewrites eligible string literals in `.cs` source files. `.dll` and `.exe` files are copied unchanged; they are not currently obfuscated.
 
-## Features (basic)
+## What it does
 
--  **String encryption**: Encodes all string literals to make them unreadable without execution.
--  **Dead code injection**: Adds meaningless methods to distract reverse engineers.
--  **Anti-Debugging mechanism**: Detects attached debuggers and prevents execution.
+- Rewrites eligible C# string literal expressions as fully qualified Base64/UTF-8 decode expressions.
+- Uses the C# syntax parser, so comments and character literals are not mistaken for strings, and C# escape sequences are decoded before encoding.
+- Copies `.dll` and `.exe` inputs to `.obf.dll` / `.obf.exe` unchanged. Assembly identifier rewriting and dead-code injection are disabled because the current implementation cannot safely preserve reflection, references, or virtual/interface contracts.
 
-## Installation
+Base64 is reversible encoding, not encryption, and provides no meaningful secrecy. Interpolated-string text and compile-time constant strings (for example `const` values, attributes, and optional parameter defaults) are left unchanged to keep the generated source valid. Ordinary string literals inside interpolation expressions are still processed. This tool does not add anti-debugging code to output applications.
+
+## Requirements
 
 ### Prerequisites
 
--  .NET Framework 4.8 Runtime (https://dotnet.microsoft.com/en-us/download/dotnet-framework/net48)
--  Mono.Cecil library (nuget Install-Package Mono.Cecil)
+- .NET Framework 4.8 Runtime (https://dotnet.microsoft.com/en-us/download/dotnet-framework/net48)
+- NuGet restore for the Roslyn C# parser dependency (Microsoft.CodeAnalysis.CSharp)
 
 ## Usage
 
@@ -37,29 +39,28 @@ Example:
 SimpleDotNetObfuscator.exe MyApp.dll MyApp.exe MySource.cs
 ```
 
-### Output:
+### Output
 
--  Obfuscated `.cs` files are saved as `.obf.cs`
--  Obfuscated assemblies (`.dll` and `.exe`) are renamed with `.obf.dll` and `.obf.exe`
+- `.cs` files are saved as `.obf.cs`
+- Assembly inputs are copied unchanged with `.obf.dll` or `.obf.exe` suffixes
 
 ## FAQs
 
--  What does this tool do? This tool obfuscates `.cs` source files, `.dll` libraries, and `.exe` executables to make them harder to reverse-engineer.
+- What does this tool do? It applies a lightweight, reversible Base64 encoding to eligible source string literals. It currently does not obfuscate assembly metadata.
 
--  How does string encryption work? String literals in C# files are replaced with encrypted versions using Base64 encoding. At runtime, they are dynamically decrypted.
+- Is Base64 string encoding encryption? No. Anyone can decode it; it only changes how literals appear in the source file.
 
--  Will obfuscation break my application? It depends. Renaming public types and members might cause issues in applications relying on reflection or serialization. Testing is highly recommended.
+- Are all string literals transformed? No. Interpolated strings and compile-time constant contexts are preserved.
 
--  How does the anti-debugging feature work? The tool checks if a debugger is attached or if profiling is enabled. If debugging is detected, the application exits to prevent reverse engineering.
+- Are assemblies renamed or protected? No. They are copied byte-for-byte so signatures and runtime metadata remain intact.
 
 -  Can I obfuscate multiple files at once? Yes. You can pass multiple file paths as arguments when running the tool.
 
 -  Does this tool provide code virtualization? No.
 
--  How do I install dependencies? Install the required **Mono.Cecil** package via NuGet using:
-   `Install-Package Mono.Cecil`
+- How do I install dependencies? Restore the NuGet packages for the solution.
 
--  Is this tool safe to use? Yes, but always **test your obfuscated binaries** before deployment to avoid runtime errors.
+- Does this provide strong protection against reverse engineering? No. It is a small source transformation utility, not a security boundary or a full obfuscator.
 
 ## QA/QC
 
