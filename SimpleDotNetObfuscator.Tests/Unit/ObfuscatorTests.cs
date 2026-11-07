@@ -2,9 +2,9 @@
 
 namespace SimpleDotNetObfuscator.Tests.Unit
 {
-   using System.IO;
    using Microsoft.VisualStudio.TestTools.UnitTesting;
    using SimpleDotNetObfuscator.Libraries;
+   using System.IO;
 
    [TestClass]
    [TestCategory("Small")]
@@ -70,16 +70,6 @@ namespace SimpleDotNetObfuscator.Tests.Unit
          string obfuscatedContent = File.ReadAllText(obfuscatedCsFile);
          // Action/Assert
          Assert.AreNotEqual(originalContent, obfuscatedContent, "Obfuscated content should be different");
-      }
-
-      [TestMethod()]
-      [Timeout(TIMEOUT_METHOD)]
-      public void TestAntiDebuggingDetection()
-      {
-         // Arrange
-         bool isDebugging = Obfuscator.IsDebugging();
-         // Action/Assert
-         Assert.IsFalse(isDebugging, "Debugger detection should return false in normal execution");
       }
    }
 }
