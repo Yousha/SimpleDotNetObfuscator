@@ -1,10 +1,45 @@
-image: Visual Studio 2019
+# AppVeyor CI for SimpleDotNetObfuscator
+# https://www.appveyor.com/docs/
+
+version: 1.0.{build}
+image: Visual Studio 2022
+
+configuration: Release
+platform: Any CPU
+
+# Skip building commits that only change docs / markdown
+skip_commits:
+  files:
+    - '**/*.md'
+    - 'LICENSE'
+    - '.gitignore'
+
+# Cache NuGet packages for faster builds
+cache:
+  - packages -> **\packages.config
+  - '%LocalAppData%\NuGet\Cache'
+  - '%LocalAppData%\NuGet\v3-cache'
 
 before_build:
-  - nuget restore SimpleDotNetObfuscator.sln -Verbosity Detailed
+  - nuget restore SimpleDotNetObfuscator.sln
 
 build:
   project: SimpleDotNetObfuscator.sln
   verbosity: minimal
+  parallel: true
 
-configuration: Release
+# Run MSTest unit tests
+test:
+  assemblies:
+    only:
+      - '**\*.Tests.dll'
+
+# Publish build outputs
+artifacts:
+  - path: '**\Artifacts\bin\$(configuration)\*.exe'
+    name: Executable
+  - path: '**\Artifacts\bin\$(configuration)\*.dll'
+    name: Libraries
+  - path: '**\Artifacts\bin\$(configuration)\*.pdb'
+    name: Symbols
+    type: zip
