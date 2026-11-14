@@ -1,0 +1,10 @@
+image: Visual Studio 2022
+
+before_build:
+  - nuget restore SimpleDotNetObfuscator.sln -Verbosity Detailed
+
+build:
+  project: SimpleDotNetObfuscator.sln
+  verbosity: minimal
+
+configuration: Release
