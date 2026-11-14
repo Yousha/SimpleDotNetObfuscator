@@ -18,7 +18,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Yousha Aleayoub")]
 [assembly: AssemblyProduct("SimpleDotNetObfuscator")]
-[assembly: AssemblyCopyright("Copyright (c) 2025 Yousha Aleayoub.")]
+[assembly: AssemblyCopyright("Copyright 2025 Yousha Aleayoub.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

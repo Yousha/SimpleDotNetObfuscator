@@ -9,7 +9,7 @@
  * Compiler: C# 7.3
  * Builder: MsBuild 16.9
  * License:
- * Copyright: Copyright (c) 2025 Yousha Aleayoub.
+ * Copyright: Copyright 2025 Yousha Aleayoub.
  * Producer: Yousha Aleayoub
  * Maintainer: Yousha Aleayoub
  * Contact: yousha.a@hotmail.com
