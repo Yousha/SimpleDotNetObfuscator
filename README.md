@@ -4,7 +4,8 @@ A small C# source-string encoder for .NET Framework projects. It writes a new `.
 
 *(It was created for a proprietary project called Simorgh, a clone of Logicube Falcon device.)*
 
-[![Dependabot Updates](https://github.com/Yousha/SimpleDotNetObfuscator/actions/workflows/dependabot/dependabot-updates/badge.svg?branch=main)](https://github.com/Yousha/SimpleDotNetObfuscator/actions/workflows/dependabot/dependabot-updates) [![CodeQL](https://github.com/Yousha/SimpleDotNetObfuscator/actions/workflows/github-code-scanning/codeql/badge.svg?branch=main)](https://github.com/Yousha/SimpleDotNetObfuscator/actions/workflows/github-code-scanning/codeql)
+[![Build status](https://ci.appveyor.com/api/projects/status/lmntqv7h9061ly30?svg=true)](https://ci.appveyor.com/project/Yousha/simpledotnetobfuscator)
+ [![Dependabot Updates](https://github.com/Yousha/SimpleDotNetObfuscator/actions/workflows/dependabot/dependabot-updates/badge.svg?branch=main)](https://github.com/Yousha/SimpleDotNetObfuscator/actions/workflows/dependabot/dependabot-updates) [![CodeQL](https://github.com/Yousha/SimpleDotNetObfuscator/actions/workflows/github-code-scanning/codeql/badge.svg?branch=main)](https://github.com/Yousha/SimpleDotNetObfuscator/actions/workflows/github-code-scanning/codeql)
 
 ## Overview
 
