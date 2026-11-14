@@ -1,4 +1,4 @@
-namespace MySoftwarePackager.Libraries
+namespace SimpleDotNetObfuscator.Libraries
 {
    #region Classes
 
@@ -10,7 +10,7 @@ namespace MySoftwarePackager.Libraries
 
       //    General
       internal const string NAME = "SimpleDotNetObfuscator";
-      internal const string DESCRIPTION = "A lightweight C# obfuscation tool for .Net applications.";
+      internal const string DESCRIPTION = "A small C# source-string encoder for .NET Framework projects.";
       internal const string VERSION = "1.0.0.1";
 
       #endregion Fields

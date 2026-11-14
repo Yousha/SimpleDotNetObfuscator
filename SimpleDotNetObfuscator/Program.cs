@@ -1,6 +1,6 @@
 /*
  * Name: SimpleDotNetObfuscator
- * Description: A lightweight C# obfuscation tool for .Net applications.
+ * Description: A small C# source-string encoder for .NET Framework projects.
  * Version: 1.0.0.1
  * Locale: en_International
  * Last update: 2025
@@ -26,7 +26,6 @@ namespace SimpleDotNetObfuscator
 {
    using System;
    using System.IO;
-   using MySoftwarePackager.Libraries;
    using SimpleDotNetObfuscator.Libraries;
 
    internal class Program
@@ -37,14 +36,12 @@ namespace SimpleDotNetObfuscator
       /// <param name="args">Command-line arguments specifying file paths to obfuscate.</param>
       internal static void Main(string[] args)
       {
-         Obfuscator.CheckForDebugging(); // Check for debuggers before running.
-
          if (args.Length == 0)
          {
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine(Constants.NAME + " " + Constants.VERSION);
             Console.WriteLine(Constants.DESCRIPTION);
-            Console.WriteLine("Usage: " + Constants.NAME + "<input_file1> [<input_file2>] ...");
+            Console.WriteLine("Usage: " + Constants.NAME + " <input_file1> [<input_file2>] ...");
             Console.ResetColor();
             return;
          }
