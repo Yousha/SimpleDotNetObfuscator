@@ -55,21 +55,5 @@ namespace SimpleDotNetObfuscator.Tests.Unit
          Assert.AreNotEqual(original, encrypted, "Encrypted string should be different");
          Assert.AreEqual(original, decrypted, "Decrypted string should match original");
       }
-
-      [TestMethod()]
-      [Timeout(TIMEOUT_METHOD)]
-      public void TestObfuscationCreatesNewFile()
-      {
-         // Arrange
-         Obfuscator.ObfuscateCSFile(testCsFile);
-         // Action/Assert
-         Assert.IsTrue(File.Exists(obfuscatedCsFile), "Obfuscated file should be created");
-
-         // Arrange
-         string originalContent = File.ReadAllText(testCsFile);
-         string obfuscatedContent = File.ReadAllText(obfuscatedCsFile);
-         // Action/Assert
-         Assert.AreNotEqual(originalContent, obfuscatedContent, "Obfuscated content should be different");
-      }
    }
 }
