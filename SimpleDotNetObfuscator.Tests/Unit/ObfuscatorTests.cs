@@ -433,6 +433,25 @@ class C {
          Assert.IsFalse(output.Contains("\\"café\\""));
       }
 
+
+      [TestMethod]
+      [Timeout(TIMEOUT_METHOD)]
+      public void ObfuscateCSFile_GotoCaseOutputCompiles()
+      {
+         WriteSampleSource(_testCsFile, "class C { static void M(string value) { switch(value) { case \\"one\\": goto case \\"two\\"; case \\"two\\": break; } } }");
+         Obfuscator.ObfuscateCSFile(_testCsFile);
+         using (var provider = new CSharpCodeProvider())
+         {
+            var parameters = new CompilerParameters();
+            parameters.GenerateExecutable = false;
+            parameters.GenerateInMemory = true;
+            parameters.ReferencedAssemblies.Add("System.dll");
+            CompilerResults results = provider.CompileAssemblyFromFile(parameters, _obfuscatedCsFile);
+            Assert.IsFalse(results.Errors.HasErrors, string.Join(Environment.NewLine,
+               results.Errors.Cast<CompilerError>().Select(error => error.ToString())));
+         }
+      }
+
       private static void WriteSampleSource(string path, string content)
       {
          File.WriteAllText(path, content, Encoding.UTF8);
