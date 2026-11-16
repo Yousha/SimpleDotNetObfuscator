@@ -420,6 +420,19 @@ class C {
          Assert.AreEqual(assemblyVersion, SimpleDotNetObfuscator.Libraries.Constants.VERSION);
       }
 
+
+      [TestMethod]
+      [Timeout(TIMEOUT_METHOD)]
+      public void ObfuscateCSFile_PreservesLegacySystemEncoding()
+      {
+         byte[] source = Encoding.Default.GetBytes("class C { string S = \\"café\\"; }");
+         File.WriteAllBytes(_testCsFile, source);
+         Obfuscator.ObfuscateCSFile(_testCsFile);
+         string output = Encoding.Default.GetString(File.ReadAllBytes(_obfuscatedCsFile));
+         Assert.IsTrue(output.Contains("(char)0x00E9"));
+         Assert.IsFalse(output.Contains("\\"café\\""));
+      }
+
       private static void WriteSampleSource(string path, string content)
       {
          File.WriteAllText(path, content, Encoding.UTF8);
