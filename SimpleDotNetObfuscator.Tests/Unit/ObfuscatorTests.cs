@@ -119,7 +119,7 @@ namespace SimpleDotNetObfuscator.Tests.Unit
          // Must be decodable by Convert.FromBase64String without exception
          byte[] bytes = Convert.FromBase64String(encoded);
          Assert.IsTrue(bytes.Length > 0);
-         Assert.AreEqual("abc", Encoding.UTF8.GetString(bytes));
+         Assert.AreEqual("abc", Obfuscator.DecryptString(encoded));
       }
 
       #endregion EncryptString / DecryptString
@@ -187,7 +187,7 @@ class C {
 
          // The rewrite must use the documented fully-qualified expression
          Assert.IsTrue(result.Contains("FromBase64String"), "Expected Base64 decode expression");
-         Assert.IsTrue(result.Contains("Encoding.UTF8.GetString"), "Expected UTF-8 GetString call");
+         Assert.IsTrue(result.Contains("Obfuscator.DecryptString"), "Expected exact UTF-16 decoder call");
 
          // The Base64 payload itself must decode back to the original text
          string expectedPayload = Obfuscator.EncryptString("Hello, World!");
@@ -345,6 +345,71 @@ class C {
       #endregion ObfuscateAssembly
 
       #region Helpers
+
+
+      [TestMethod]
+      [Timeout(TIMEOUT_METHOD)]
+      public void EncryptDecrypt_PreservesUnpairedSurrogates()
+      {
+         string original = new string(new[] { 'A', '\\uD800', 'B' });
+         Assert.AreEqual(original, Obfuscator.DecryptString(Obfuscator.EncryptString(original)));
+      }
+
+      [TestMethod]
+      [Timeout(TIMEOUT_METHOD)]
+      public void ObfuscateCSFile_PreservesGotoCaseConstant()
+      {
+         WriteSampleSource(_testCsFile, "class C { static void M(string value) { switch(value) { case \\"one\\": goto case \\"two\\"; case \\"two\\": break; } } }");
+         Obfuscator.ObfuscateCSFile(_testCsFile);
+         string result = File.ReadAllText(_obfuscatedCsFile);
+         Assert.IsTrue(result.Contains("goto case \\"two\\""));
+      }
+
+      [TestMethod]
+      [Timeout(TIMEOUT_METHOD)]
+      public void ObfuscateCSFile_TransformsBothConditionalBranches()
+      {
+         WriteSampleSource(_testCsFile, "#if DEBUG\\nclass C { string A = \\"debug-value\\"; }\\n#else\\nclass C { string A = \\"release-value\\"; }\\n#endif");
+         Obfuscator.ObfuscateCSFile(_testCsFile);
+         string result = File.ReadAllText(_obfuscatedCsFile);
+         Assert.IsFalse(result.Contains("\\"debug-value\\""));
+         Assert.IsFalse(result.Contains("\\"release-value\\""));
+         Assert.IsTrue(result.Contains(Obfuscator.EncryptString("debug-value")));
+         Assert.IsTrue(result.Contains(Obfuscator.EncryptString("release-value")));
+      }
+
+      [TestMethod]
+      [Timeout(TIMEOUT_METHOD)]
+      public void ObfuscateCSFile_PreservesStringInterning()
+      {
+         WriteSampleSource(_testCsFile, "class C { static bool M() { string a = \\"same\\"; string b = \\"same\\"; return object.ReferenceEquals(a, b); } }");
+         Obfuscator.ObfuscateCSFile(_testCsFile);
+         string result = File.ReadAllText(_obfuscatedCsFile);
+         Assert.IsTrue(result.Contains("String.Intern"));
+      }
+
+      [TestMethod]
+      [Timeout(TIMEOUT_METHOD)]
+      public void ObfuscateCSFile_LeavesLambdaAndQueryLiteralsUnchanged()
+      {
+         WriteSampleSource(_testCsFile, "using System; using System.Linq; using System.Linq.Expressions; class C { Expression<Func<string, bool>> E = x => x == \\"query-value\\"; }");
+         Obfuscator.ObfuscateCSFile(_testCsFile);
+         string result = File.ReadAllText(_obfuscatedCsFile);
+         Assert.IsTrue(result.Contains("\\"query-value\\""));
+      }
+
+      [TestMethod]
+      [Timeout(TIMEOUT_METHOD)]
+      public void ObfuscateCSFile_PreservesUtf8Bom()
+      {
+         WriteSampleSource(_testCsFile, "class C { string S = \\"hello\\"; }");
+         byte[] source = File.ReadAllBytes(_testCsFile);
+         Obfuscator.ObfuscateCSFile(_testCsFile);
+         byte[] output = File.ReadAllBytes(_obfuscatedCsFile);
+         Assert.AreEqual(source[0], output[0]);
+         Assert.AreEqual(source[1], output[1]);
+         Assert.AreEqual(source[2], output[2]);
+      }
 
       private static void WriteSampleSource(string path, string content)
       {
