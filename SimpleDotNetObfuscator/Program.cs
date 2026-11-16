@@ -1,27 +1,15 @@
 /*
  * Name: SimpleDotNetObfuscator
  * Description: A small C# source-string encoder for .NET Framework projects.
- * Version: 1.0.0.1
+ * Version: 1.0.1.0
  * Locale: en_International
- * Last update: 2025
+ * Last update: 2026
  * Architecture: multi-arch
  * API: .Net Framework 4.8
  * Compiler: C# 7.3
  * Builder: MsBuild 16.9
- * License:
  * Copyright: Copyright 2025 Yousha Aleayoub.
- * Producer: Yousha Aleayoub
- * Maintainer: Yousha Aleayoub
- * Contact: yousha.a@hotmail.com
- * Link: https://yousha.blog.ir
  */
-
-#define PRODUCTION
-
-#if DEBUG
-#warning Debug mode is active.
-#endif
-
 namespace SimpleDotNetObfuscator
 {
    using System;
@@ -30,11 +18,10 @@ namespace SimpleDotNetObfuscator
 
    internal class Program
    {
-      /// <summary>
-      /// Main entry point for the obfuscation tool.
-      /// </summary>
-      /// <param name="args">Command-line arguments specifying file paths to obfuscate.</param>
-      internal static void Main(string[] args)
+      /// <summary>Processes the supplied source and assembly files.</summary>
+      /// <param name="args">Input file paths.</param>
+      /// <returns>Zero when every input succeeds; otherwise a nonzero exit code.</returns>
+      internal static int Main(string[] args)
       {
          if (args.Length == 0)
          {
@@ -43,31 +30,40 @@ namespace SimpleDotNetObfuscator
             Console.WriteLine(Constants.DESCRIPTION);
             Console.WriteLine("Usage: " + Constants.NAME + " <input_file1> [<input_file2>] ...");
             Console.ResetColor();
-            return;
+            return 0;
          }
 
-         foreach (var filePath in args)
+         int failures = 0;
+         foreach (string filePath in args)
          {
-            if (!File.Exists(filePath))
+            try
             {
-               Console.WriteLine("File not found: " + filePath);
-               continue;
+               if (!File.Exists(filePath))
+               {
+                  Console.Error.WriteLine("File not found: " + filePath);
+                  failures++;
+                  continue;
+               }
+
+               string ext = Path.GetExtension(filePath).ToLowerInvariant();
+               if (ext == ".cs")
+                  Obfuscator.ObfuscateCSFile(filePath);
+               else if (ext == ".dll" || ext == ".exe")
+                  Obfuscator.ObfuscateAssembly(filePath);
+               else
+               {
+                  Console.Error.WriteLine("Unsupported file type: " + filePath);
+                  failures++;
+               }
             }
-            string ext = Path.GetExtension(filePath).ToLowerInvariant();
-            if (ext == ".cs")
+            catch (Exception exception)
             {
-               Obfuscator.ObfuscateCSFile(filePath);
-            }
-            else if (ext == ".dll" || ext == ".exe")
-            {
-               Obfuscator.ObfuscateAssembly(filePath);
-            }
-            else
-            {
-               Console.WriteLine("Unsupported file type: " + filePath);
+               Console.Error.WriteLine("Failed to process '" + filePath + "': " + exception.Message);
+               failures++;
             }
          }
+
+         return failures == 0 ? 0 : 1;
       }
    }
-
 }
