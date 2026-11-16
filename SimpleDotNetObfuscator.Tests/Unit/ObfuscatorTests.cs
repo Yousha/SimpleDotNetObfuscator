@@ -3,8 +3,10 @@
 namespace SimpleDotNetObfuscator.Tests.Unit
 {
    using System;
+   using System.CodeDom.Compiler;
    using System.IO;
    using System.Text;
+   using Microsoft.CSharp;
    using Microsoft.VisualStudio.TestTools.UnitTesting;
    using SimpleDotNetObfuscator.Libraries;
 
