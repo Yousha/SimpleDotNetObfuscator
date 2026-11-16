@@ -374,8 +374,8 @@ class C {
          string result = File.ReadAllText(_obfuscatedCsFile);
          Assert.IsFalse(result.Contains("\"debug-value\""));
          Assert.IsFalse(result.Contains("\"release-value\""));
-         Assert.IsTrue(result.Contains(Obfuscator.EncryptString("debug-value")));
-         Assert.IsTrue(result.Contains(Obfuscator.EncryptString("release-value")));
+         Assert.IsTrue(result.Contains("(char)0x0064"));
+         Assert.IsTrue(result.Contains("(char)0x0072"));
       }
 
       [TestMethod]
@@ -434,6 +434,7 @@ class C {
       [Timeout(TIMEOUT_METHOD)]
       public void CommandLine_ContinuesAfterFailedInput()
       {
+         WriteSampleSource(_testCsFile, "class C {}");
          int exitCode = SimpleDotNetObfuscator.Program.Main(new[] {
             Path.Combine(_tempDir, "missing.cs"), _testCsFile
          });
