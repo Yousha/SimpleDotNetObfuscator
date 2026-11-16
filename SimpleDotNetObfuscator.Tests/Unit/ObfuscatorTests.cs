@@ -425,12 +425,12 @@ class C {
       [Timeout(TIMEOUT_METHOD)]
       public void ObfuscateCSFile_PreservesLegacySystemEncoding()
       {
-         byte[] source = Encoding.Default.GetBytes("class C { string S = \\"café\\"; }");
+         byte[] source = Encoding.Default.GetBytes("class C { string S = \"café\"; }");
          File.WriteAllBytes(_testCsFile, source);
          Obfuscator.ObfuscateCSFile(_testCsFile);
          string output = Encoding.Default.GetString(File.ReadAllBytes(_obfuscatedCsFile));
          Assert.IsTrue(output.Contains("(char)0x00E9"));
-         Assert.IsFalse(output.Contains("\\"café\\""));
+         Assert.IsFalse(output.Contains("\"café\""));
       }
 
 
@@ -438,7 +438,7 @@ class C {
       [Timeout(TIMEOUT_METHOD)]
       public void ObfuscateCSFile_GotoCaseOutputCompiles()
       {
-         WriteSampleSource(_testCsFile, "class C { static void M(string value) { switch(value) { case \\"one\\": goto case \\"two\\"; case \\"two\\": break; } } }");
+         WriteSampleSource(_testCsFile, "class C { static void M(string value) { switch(value) { case \"one\": goto case \"two\"; case \"two\": break; } } }");
          Obfuscator.ObfuscateCSFile(_testCsFile);
          using (var provider = new CSharpCodeProvider())
          {
