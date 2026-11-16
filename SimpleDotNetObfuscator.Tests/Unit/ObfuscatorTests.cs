@@ -169,10 +169,10 @@ class C {
       [Timeout(TIMEOUT_METHOD)]
       public void ObfuscateCSFile_RewritesOrdinaryStringLiteral()
       {
-         WriteSampleSource(_testCsFile, "class C { string S = \\"Hello, World!\\"; }");
+         WriteSampleSource(_testCsFile, "class C { string S = \"Hello, World!\"; }");
          Obfuscator.ObfuscateCSFile(_testCsFile);
          string result = File.ReadAllText(_obfuscatedCsFile);
-         Assert.IsFalse(result.Contains("\\"Hello, World!\\""));
+         Assert.IsFalse(result.Contains("\"Hello, World!\""));
          Assert.IsTrue(result.Contains("String.Intern"));
          Assert.IsTrue(result.Contains("(char)0x0048"));
       }
@@ -243,11 +243,11 @@ class C {
       [Timeout(TIMEOUT_METHOD)]
       public void ObfuscateCSFile_VerbatimStringIsProcessed()
       {
-         WriteSampleSource(_testCsFile, "class C { string path = @\\"C:\\\\Temp\\\\file.txt\\"; }");
+         WriteSampleSource(_testCsFile, "class C { string path = @\"C:\\Temp\\file.txt\"; }");
          Obfuscator.ObfuscateCSFile(_testCsFile);
          string result = File.ReadAllText(_obfuscatedCsFile);
          Assert.IsTrue(result.Contains("(char)0x0043"));
-         Assert.IsFalse(result.Contains("@\\"C:\\\\Temp\\\\file.txt\\""));
+         Assert.IsFalse(result.Contains("@\"C:\\Temp\\file.txt\""));
       }
 
 
