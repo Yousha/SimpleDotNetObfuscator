@@ -351,7 +351,7 @@ class C {
       [Timeout(TIMEOUT_METHOD)]
       public void EncryptDecrypt_PreservesUnpairedSurrogates()
       {
-         string original = new string(new[] { 'A', '\\uD800', 'B' });
+         string original = new string(new[] { 'A', '\uD800', 'B' });
          Assert.AreEqual(original, Obfuscator.DecryptString(Obfuscator.EncryptString(original)));
       }
 
@@ -359,21 +359,21 @@ class C {
       [Timeout(TIMEOUT_METHOD)]
       public void ObfuscateCSFile_PreservesGotoCaseConstant()
       {
-         WriteSampleSource(_testCsFile, "class C { static void M(string value) { switch(value) { case \\"one\\": goto case \\"two\\"; case \\"two\\": break; } } }");
+         WriteSampleSource(_testCsFile, "class C { static void M(string value) { switch(value) { case \"one\": goto case \"two\"; case \"two\": break; } } }");
          Obfuscator.ObfuscateCSFile(_testCsFile);
          string result = File.ReadAllText(_obfuscatedCsFile);
-         Assert.IsTrue(result.Contains("goto case \\"two\\""));
+         Assert.IsTrue(result.Contains("goto case \"two\""));
       }
 
       [TestMethod]
       [Timeout(TIMEOUT_METHOD)]
       public void ObfuscateCSFile_TransformsBothConditionalBranches()
       {
-         WriteSampleSource(_testCsFile, "#if DEBUG\\nclass C { string A = \\"debug-value\\"; }\\n#else\\nclass C { string A = \\"release-value\\"; }\\n#endif");
+         WriteSampleSource(_testCsFile, "#if DEBUG\nclass C { string A = \"debug-value\"; }\n#else\nclass C { string A = \"release-value\"; }\n#endif");
          Obfuscator.ObfuscateCSFile(_testCsFile);
          string result = File.ReadAllText(_obfuscatedCsFile);
-         Assert.IsFalse(result.Contains("\\"debug-value\\""));
-         Assert.IsFalse(result.Contains("\\"release-value\\""));
+         Assert.IsFalse(result.Contains("\"debug-value\""));
+         Assert.IsFalse(result.Contains("\"release-value\""));
          Assert.IsTrue(result.Contains(Obfuscator.EncryptString("debug-value")));
          Assert.IsTrue(result.Contains(Obfuscator.EncryptString("release-value")));
       }
@@ -382,7 +382,7 @@ class C {
       [Timeout(TIMEOUT_METHOD)]
       public void ObfuscateCSFile_PreservesStringInterning()
       {
-         WriteSampleSource(_testCsFile, "class C { static bool M() { string a = \\"same\\"; string b = \\"same\\"; return object.ReferenceEquals(a, b); } }");
+         WriteSampleSource(_testCsFile, "class C { static bool M() { string a = \"same\"; string b = \"same\"; return object.ReferenceEquals(a, b); } }");
          Obfuscator.ObfuscateCSFile(_testCsFile);
          string result = File.ReadAllText(_obfuscatedCsFile);
          Assert.IsTrue(result.Contains("String.Intern"));
@@ -392,17 +392,17 @@ class C {
       [Timeout(TIMEOUT_METHOD)]
       public void ObfuscateCSFile_LeavesLambdaAndQueryLiteralsUnchanged()
       {
-         WriteSampleSource(_testCsFile, "using System; using System.Linq; using System.Linq.Expressions; class C { Expression<Func<string, bool>> E = x => x == \\"query-value\\"; }");
+         WriteSampleSource(_testCsFile, "using System; using System.Linq; using System.Linq.Expressions; class C { Expression<Func<string, bool>> E = x => x == \"query-value\"; }");
          Obfuscator.ObfuscateCSFile(_testCsFile);
          string result = File.ReadAllText(_obfuscatedCsFile);
-         Assert.IsTrue(result.Contains("\\"query-value\\""));
+         Assert.IsTrue(result.Contains("\"query-value\""));
       }
 
       [TestMethod]
       [Timeout(TIMEOUT_METHOD)]
       public void ObfuscateCSFile_PreservesUtf8Bom()
       {
-         WriteSampleSource(_testCsFile, "class C { string S = \\"hello\\"; }");
+         WriteSampleSource(_testCsFile, "class C { string S = \"hello\"; }");
          byte[] source = File.ReadAllBytes(_testCsFile);
          Obfuscator.ObfuscateCSFile(_testCsFile);
          byte[] output = File.ReadAllBytes(_obfuscatedCsFile);
