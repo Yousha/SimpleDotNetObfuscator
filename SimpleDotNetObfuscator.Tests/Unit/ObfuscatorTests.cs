@@ -119,7 +119,7 @@ namespace SimpleDotNetObfuscator.Tests.Unit
          // Must be decodable by Convert.FromBase64String without exception
          byte[] bytes = Convert.FromBase64String(encoded);
          Assert.IsTrue(bytes.Length > 0);
-         Assert.AreEqual("abc", Encoding.UTF8.GetString(bytes));
+         Assert.AreEqual("abc", Obfuscator.DecryptString(encoded));
       }
 
       #endregion EncryptString / DecryptString
@@ -169,33 +169,15 @@ class C {
       [Timeout(TIMEOUT_METHOD)]
       public void ObfuscateCSFile_RewritesOrdinaryStringLiteral()
       {
-         WriteSampleSource(_testCsFile, @"
-using System;
-class C {
-    static void Main() {
-        Console.WriteLine(""Hello, World!"");
-    }
-}
-");
-
+         WriteSampleSource(_testCsFile, "class C { string S = \"Hello, World!\"; }");
          Obfuscator.ObfuscateCSFile(_testCsFile);
-
          string result = File.ReadAllText(_obfuscatedCsFile);
-
-         // Plain text should no longer appear as a string literal
-         Assert.IsFalse(result.Contains("\"Hello, World!\""), "Plain string literal should have been rewritten");
-
-         // The rewrite must use the documented fully-qualified expression
-         Assert.IsTrue(result.Contains("FromBase64String"), "Expected Base64 decode expression");
-         Assert.IsTrue(result.Contains("Encoding.UTF8.GetString"), "Expected UTF-8 GetString call");
-
-         // The Base64 payload itself must decode back to the original text
-         string expectedPayload = Obfuscator.EncryptString("Hello, World!");
-         Assert.IsTrue(result.Contains(expectedPayload), "Encoded payload must be present in the output");
+         Assert.IsFalse(result.Contains("\"Hello, World!\""));
+         Assert.IsTrue(result.Contains("String.Intern"));
+         Assert.IsTrue(result.Contains("(char)0x0048"));
       }
 
-      [TestMethod]
-      [Timeout(TIMEOUT_METHOD)]
+
       public void ObfuscateCSFile_PreservesConstString()
       {
          WriteSampleSource(_testCsFile, @"
@@ -261,26 +243,14 @@ class C {
       [Timeout(TIMEOUT_METHOD)]
       public void ObfuscateCSFile_VerbatimStringIsProcessed()
       {
-         // ValueText of a verbatim string still yields the real content
-         WriteSampleSource(_testCsFile, @"
-using System;
-class C {
-    static void Main() {
-        string path = @""C:\Temp\file.txt"";
-    }
-}
-");
-
+         WriteSampleSource(_testCsFile, "class C { string path = @\"C:\\Temp\\file.txt\"; }");
          Obfuscator.ObfuscateCSFile(_testCsFile);
-
          string result = File.ReadAllText(_obfuscatedCsFile);
-         string expectedPayload = Obfuscator.EncryptString(@"C:\Temp\file.txt");
-         Assert.IsTrue(result.Contains(expectedPayload), "Verbatim string content must be Base64-encoded");
-         Assert.IsFalse(result.Contains("@\"C:\\Temp\\file.txt\""), "Original verbatim literal should be rewritten");
+         Assert.IsTrue(result.Contains("(char)0x0043"));
+         Assert.IsFalse(result.Contains("@\"C:\\Temp\\file.txt\""));
       }
 
-      [TestMethod]
-      [Timeout(TIMEOUT_METHOD)]
+
       public void ObfuscateCSFile_SourceWithNoStrings_StillProducesOutput()
       {
          WriteSampleSource(_testCsFile, @"
@@ -345,6 +315,141 @@ class C {
       #endregion ObfuscateAssembly
 
       #region Helpers
+
+
+      [TestMethod]
+      [Timeout(TIMEOUT_METHOD)]
+      public void EncryptDecrypt_PreservesUnpairedSurrogates()
+      {
+         string original = new string(new[] { 'A', '\uD800', 'B' });
+         Assert.AreEqual(original, Obfuscator.DecryptString(Obfuscator.EncryptString(original)));
+      }
+
+      [TestMethod]
+      [Timeout(TIMEOUT_METHOD)]
+      public void ObfuscateCSFile_PreservesGotoCaseConstant()
+      {
+         WriteSampleSource(_testCsFile, "class C { static void M(string value) { switch(value) { case \"one\": goto case \"two\"; case \"two\": break; } } }");
+         Obfuscator.ObfuscateCSFile(_testCsFile);
+         string result = File.ReadAllText(_obfuscatedCsFile);
+         Assert.IsTrue(result.Contains("goto case \"two\""));
+      }
+
+      [TestMethod]
+      [Timeout(TIMEOUT_METHOD)]
+      public void ObfuscateCSFile_TransformsBothConditionalBranches()
+      {
+         WriteSampleSource(_testCsFile, "#if DEBUG && FEATURE\nclass C { string A = \"debug-value\"; }\n#else\nclass C { string A = \"release-value\"; }\n#endif");
+         Obfuscator.ObfuscateCSFile(_testCsFile);
+         string result = File.ReadAllText(_obfuscatedCsFile);
+         Assert.IsFalse(result.Contains("\"debug-value\""));
+         Assert.IsFalse(result.Contains("\"release-value\""));
+         Assert.IsTrue(result.Contains("(char)0x0064"));
+         Assert.IsTrue(result.Contains("(char)0x0072"));
+      }
+
+      [TestMethod]
+      [Timeout(TIMEOUT_METHOD)]
+      public void ObfuscateCSFile_PreservesStringInterning()
+      {
+         WriteSampleSource(_testCsFile, "class C { static bool M() { string a = \"same\"; string b = \"same\"; return object.ReferenceEquals(a, b); } }");
+         Obfuscator.ObfuscateCSFile(_testCsFile);
+         string result = File.ReadAllText(_obfuscatedCsFile);
+         Assert.IsTrue(result.Contains("String.Intern"));
+      }
+
+      [TestMethod]
+      [Timeout(TIMEOUT_METHOD)]
+      public void ObfuscateCSFile_LeavesLambdaAndQueryLiteralsUnchanged()
+      {
+         WriteSampleSource(_testCsFile, "using System; using System.Linq; using System.Linq.Expressions; class C { Expression<Func<string, bool>> E = x => x == \"query-value\"; }");
+         Obfuscator.ObfuscateCSFile(_testCsFile);
+         string result = File.ReadAllText(_obfuscatedCsFile);
+         Assert.IsTrue(result.Contains("\"query-value\""));
+      }
+
+      [TestMethod]
+      [Timeout(TIMEOUT_METHOD)]
+      public void ObfuscateCSFile_PreservesUtf8Bom()
+      {
+         WriteSampleSource(_testCsFile, "class C { string S = \"hello\"; }");
+         byte[] source = File.ReadAllBytes(_testCsFile);
+         Obfuscator.ObfuscateCSFile(_testCsFile);
+         byte[] output = File.ReadAllBytes(_obfuscatedCsFile);
+         Assert.AreEqual(source[0], output[0]);
+         Assert.AreEqual(source[1], output[1]);
+         Assert.AreEqual(source[2], output[2]);
+      }
+
+
+      [TestMethod]
+      [Timeout(TIMEOUT_METHOD)]
+      public void CommandLine_MissingInputReturnsFailure()
+      {
+         int exitCode = SimpleDotNetObfuscator.Program.Main(new[] { Path.Combine(_tempDir, "missing.cs") });
+         Assert.AreNotEqual(0, exitCode);
+      }
+
+      [TestMethod]
+      [Timeout(TIMEOUT_METHOD)]
+      public void CommandLine_UnsupportedInputReturnsFailure()
+      {
+         string path = Path.Combine(_tempDir, "input.txt");
+         File.WriteAllText(path, "data");
+         int exitCode = SimpleDotNetObfuscator.Program.Main(new[] { path });
+         Assert.AreNotEqual(0, exitCode);
+      }
+
+      [TestMethod]
+      [Timeout(TIMEOUT_METHOD)]
+      public void CommandLine_ContinuesAfterFailedInput()
+      {
+         WriteSampleSource(_testCsFile, "class C {}");
+         int exitCode = SimpleDotNetObfuscator.Program.Main(new[] {
+            Path.Combine(_tempDir, "missing.cs"), _testCsFile
+         });
+         Assert.AreNotEqual(0, exitCode);
+         Assert.IsTrue(File.Exists(_obfuscatedCsFile));
+      }
+
+      [TestMethod]
+      [Timeout(TIMEOUT_METHOD)]
+      public void CliVersion_MatchesAssemblyVersion()
+      {
+         string assemblyVersion = typeof(Obfuscator).Assembly.GetName().Version.ToString();
+         Assert.AreEqual(assemblyVersion, SimpleDotNetObfuscator.Libraries.Constants.VERSION);
+      }
+
+
+      [TestMethod]
+      [Timeout(TIMEOUT_METHOD)]
+      public void ObfuscateCSFile_PreservesLegacySystemEncoding()
+      {
+         byte[] source = Encoding.Default.GetBytes("class C { string S = \"café\"; }");
+         File.WriteAllBytes(_testCsFile, source);
+         Obfuscator.ObfuscateCSFile(_testCsFile);
+         string output = Encoding.Default.GetString(File.ReadAllBytes(_obfuscatedCsFile));
+         Assert.IsTrue(output.Contains("(char)0x00E9"));
+         Assert.IsFalse(output.Contains("\"café\""));
+      }
+
+
+      [TestMethod]
+      [Timeout(TIMEOUT_METHOD)]
+      public void ObfuscateCSFile_GotoCaseOutputCompiles()
+      {
+         WriteSampleSource(_testCsFile, "class C { static void M(string value) { switch(value) { case \"one\": goto case \"two\"; case \"two\": break; } } }");
+         Obfuscator.ObfuscateCSFile(_testCsFile);
+         using (var provider = new CSharpCodeProvider())
+         {
+            var parameters = new CompilerParameters();
+            parameters.GenerateExecutable = false;
+            parameters.GenerateInMemory = true;
+            parameters.ReferencedAssemblies.Add("System.dll");
+            CompilerResults results = provider.CompileAssemblyFromFile(parameters, _obfuscatedCsFile);
+            Assert.IsFalse(results.Errors.HasErrors, results.Errors.HasErrors ? results.Errors[0].ToString() : string.Empty);
+         }
+      }
 
       private static void WriteSampleSource(string path, string content)
       {

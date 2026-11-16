@@ -11,7 +11,7 @@ namespace SimpleDotNetObfuscator.Libraries
       //    General
       internal const string NAME = "SimpleDotNetObfuscator";
       internal const string DESCRIPTION = "A small C# source-string encoder for .NET Framework projects.";
-      internal const string VERSION = "1.0.0.1";
+      internal const string VERSION = "1.0.1.0";
 
       #endregion Fields
    }
