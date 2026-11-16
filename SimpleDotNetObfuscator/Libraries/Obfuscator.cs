@@ -63,8 +63,9 @@ namespace SimpleDotNetObfuscator.Libraries
             if (IsCompileTimeConstantContext(literal) || IsExpressionTreeContext(literal))
                continue;
 
-            string encoded = EncryptString(literal.Token.ValueText);
-            string expression = "global::System.String.Intern(global::SimpleDotNetObfuscator.Libraries.Obfuscator.DecryptString(\"" + encoded + "\"))";
+            string value = literal.Token.ValueText;
+            string characters = string.Join(", ", value.Select(character => "(char)0x" + ((int)character).ToString("X4")));
+            string expression = "global::System.String.Intern(new global::System.String(new char[] { " + characters + " }))";
             result.Remove(literal.SpanStart, literal.Span.Length);
             result.Insert(literal.SpanStart, expression);
          }
