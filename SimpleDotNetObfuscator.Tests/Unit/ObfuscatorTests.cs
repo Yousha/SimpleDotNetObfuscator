@@ -235,8 +235,9 @@ class C {
          Obfuscator.ObfuscateCSFile(_testCsFile);
 
          string result = File.ReadAllText(_obfuscatedCsFile);
-         Assert.IsTrue(result.Contains(Obfuscator.EncryptString("Alpha")), "First literal should be encoded");
-         Assert.IsTrue(result.Contains(Obfuscator.EncryptString("Beta")), "Second literal should be encoded");
+         Assert.IsTrue(result.Contains("(char)0x0041"), "Alpha must be encoded as UTF-16 code units");
+         Assert.IsTrue(result.Contains("(char)0x0042"), "Beta must be encoded as UTF-16 code units");
+         Assert.IsTrue(result.Contains("String.Intern"), "Encoded literals must preserve string interning");
          Assert.IsFalse(result.Contains("\"Alpha\""), "Plain Alpha literal should be gone");
          Assert.IsFalse(result.Contains("\"Beta\""), "Plain Beta literal should be gone");
       }
