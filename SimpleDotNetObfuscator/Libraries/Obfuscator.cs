@@ -119,7 +119,7 @@ namespace SimpleDotNetObfuscator.Libraries
       private static Dictionary<int, LiteralExpressionSyntax> CollectLiteralReplacements(string code)
       {
          var symbolSet = new HashSet<string>(StringComparer.Ordinal);
-         foreach (Match directive in Regex.Matches(code, @"(?m)^[ \\t]*#\\s*(?:if|elif)\\s+([^\\r\\n]+)"))
+         foreach (Match directive in Regex.Matches(code, @"(?m)^[ \t]*#\s*(?:if|elif)\s+([^\r\n]+)"))
          {
             foreach (Match identifier in Regex.Matches(directive.Groups[1].Value, @"\b[A-Za-z_][A-Za-z0-9_]*\b"))
             {
