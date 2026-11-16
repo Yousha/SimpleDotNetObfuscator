@@ -339,7 +339,7 @@ class C {
       [Timeout(TIMEOUT_METHOD)]
       public void ObfuscateCSFile_TransformsBothConditionalBranches()
       {
-         WriteSampleSource(_testCsFile, "#if DEBUG\nclass C { string A = \"debug-value\"; }\n#else\nclass C { string A = \"release-value\"; }\n#endif");
+         WriteSampleSource(_testCsFile, "#if DEBUG && FEATURE\nclass C { string A = \"debug-value\"; }\n#else\nclass C { string A = \"release-value\"; }\n#endif");
          Obfuscator.ObfuscateCSFile(_testCsFile);
          string result = File.ReadAllText(_obfuscatedCsFile);
          Assert.IsFalse(result.Contains("\"debug-value\""));
