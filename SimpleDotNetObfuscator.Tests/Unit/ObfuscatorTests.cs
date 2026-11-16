@@ -411,6 +411,44 @@ class C {
          Assert.AreEqual(source[2], output[2]);
       }
 
+
+      [TestMethod]
+      [Timeout(TIMEOUT_METHOD)]
+      public void CommandLine_MissingInputReturnsFailure()
+      {
+         int exitCode = SimpleDotNetObfuscator.Program.Main(new[] { Path.Combine(_tempDir, "missing.cs") });
+         Assert.AreNotEqual(0, exitCode);
+      }
+
+      [TestMethod]
+      [Timeout(TIMEOUT_METHOD)]
+      public void CommandLine_UnsupportedInputReturnsFailure()
+      {
+         string path = Path.Combine(_tempDir, "input.txt");
+         File.WriteAllText(path, "data");
+         int exitCode = SimpleDotNetObfuscator.Program.Main(new[] { path });
+         Assert.AreNotEqual(0, exitCode);
+      }
+
+      [TestMethod]
+      [Timeout(TIMEOUT_METHOD)]
+      public void CommandLine_ContinuesAfterFailedInput()
+      {
+         int exitCode = SimpleDotNetObfuscator.Program.Main(new[] {
+            Path.Combine(_tempDir, "missing.cs"), _testCsFile
+         });
+         Assert.AreNotEqual(0, exitCode);
+         Assert.IsTrue(File.Exists(_obfuscatedCsFile));
+      }
+
+      [TestMethod]
+      [Timeout(TIMEOUT_METHOD)]
+      public void CliVersion_MatchesAssemblyVersion()
+      {
+         string assemblyVersion = typeof(Obfuscator).Assembly.GetName().Version.ToString();
+         Assert.AreEqual(assemblyVersion, SimpleDotNetObfuscator.Libraries.Constants.VERSION);
+      }
+
       private static void WriteSampleSource(string path, string content)
       {
          File.WriteAllText(path, content, Encoding.UTF8);
