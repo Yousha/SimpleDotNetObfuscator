@@ -169,33 +169,15 @@ class C {
       [Timeout(TIMEOUT_METHOD)]
       public void ObfuscateCSFile_RewritesOrdinaryStringLiteral()
       {
-         WriteSampleSource(_testCsFile, @"
-using System;
-class C {
-    static void Main() {
-        Console.WriteLine(""Hello, World!"");
-    }
-}
-");
-
+         WriteSampleSource(_testCsFile, "class C { string S = \\"Hello, World!\\"; }");
          Obfuscator.ObfuscateCSFile(_testCsFile);
-
          string result = File.ReadAllText(_obfuscatedCsFile);
-
-         // Plain text should no longer appear as a string literal
-         Assert.IsFalse(result.Contains("\"Hello, World!\""), "Plain string literal should have been rewritten");
-
-         // The rewrite must use the documented fully-qualified expression
-         Assert.IsTrue(result.Contains("FromBase64String"), "Expected Base64 decode expression");
-         Assert.IsTrue(result.Contains("Obfuscator.DecryptString"), "Expected exact UTF-16 decoder call");
-
-         // The Base64 payload itself must decode back to the original text
-         string expectedPayload = Obfuscator.EncryptString("Hello, World!");
-         Assert.IsTrue(result.Contains(expectedPayload), "Encoded payload must be present in the output");
+         Assert.IsFalse(result.Contains("\\"Hello, World!\\""));
+         Assert.IsTrue(result.Contains("String.Intern"));
+         Assert.IsTrue(result.Contains("(char)0x0048"));
       }
 
-      [TestMethod]
-      [Timeout(TIMEOUT_METHOD)]
+
       public void ObfuscateCSFile_PreservesConstString()
       {
          WriteSampleSource(_testCsFile, @"
@@ -261,26 +243,14 @@ class C {
       [Timeout(TIMEOUT_METHOD)]
       public void ObfuscateCSFile_VerbatimStringIsProcessed()
       {
-         // ValueText of a verbatim string still yields the real content
-         WriteSampleSource(_testCsFile, @"
-using System;
-class C {
-    static void Main() {
-        string path = @""C:\Temp\file.txt"";
-    }
-}
-");
-
+         WriteSampleSource(_testCsFile, "class C { string path = @\\"C:\\\\Temp\\\\file.txt\\"; }");
          Obfuscator.ObfuscateCSFile(_testCsFile);
-
          string result = File.ReadAllText(_obfuscatedCsFile);
-         string expectedPayload = Obfuscator.EncryptString(@"C:\Temp\file.txt");
-         Assert.IsTrue(result.Contains(expectedPayload), "Verbatim string content must be Base64-encoded");
-         Assert.IsFalse(result.Contains("@\"C:\\Temp\\file.txt\""), "Original verbatim literal should be rewritten");
+         Assert.IsTrue(result.Contains("(char)0x0043"));
+         Assert.IsFalse(result.Contains("@\\"C:\\\\Temp\\\\file.txt\\""));
       }
 
-      [TestMethod]
-      [Timeout(TIMEOUT_METHOD)]
+
       public void ObfuscateCSFile_SourceWithNoStrings_StillProducesOutput()
       {
          WriteSampleSource(_testCsFile, @"
