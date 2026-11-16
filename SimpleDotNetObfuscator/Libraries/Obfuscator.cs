@@ -118,10 +118,17 @@ namespace SimpleDotNetObfuscator.Libraries
 
       private static Dictionary<int, LiteralExpressionSyntax> CollectLiteralReplacements(string code)
       {
-         var symbols = Regex.Matches(code, @"#\s*(?:if|elif)\s+([A-Za-z_][A-Za-z0-9_]*)")
-            .Cast<Match>().Select(match => match.Groups[1].Value)
-            .Where(symbol => symbol != "true" && symbol != "false")
-            .Distinct(StringComparer.Ordinal).ToArray();
+         var symbolSet = new HashSet<string>(StringComparer.Ordinal);
+         foreach (Match directive in Regex.Matches(code, @"#\\s*(?:if|elif)\\s+([^\\r\\n]+)"))
+         {
+            foreach (Match identifier in Regex.Matches(directive.Groups[1].Value, @"\\b[A-Za-z_][A-Za-z0-9_]*\\b"))
+            {
+               string symbol = identifier.Value;
+               if (symbol != "true" && symbol != "false")
+                  symbolSet.Add(symbol);
+            }
+         }
+         string[] symbols = symbolSet.ToArray();
 
          if (symbols.Length > 12)
             throw new InvalidOperationException("More than 12 conditional-compilation symbols were found; refusing an incomplete transformation.");
