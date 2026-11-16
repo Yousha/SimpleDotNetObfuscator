@@ -447,8 +447,7 @@ class C {
             parameters.GenerateInMemory = true;
             parameters.ReferencedAssemblies.Add("System.dll");
             CompilerResults results = provider.CompileAssemblyFromFile(parameters, _obfuscatedCsFile);
-            Assert.IsFalse(results.Errors.HasErrors, string.Join(Environment.NewLine,
-               results.Errors.Cast<CompilerError>().Select(error => error.ToString())));
+            Assert.IsFalse(results.Errors.HasErrors, results.Errors.HasErrors ? results.Errors[0].ToString() : string.Empty);
          }
       }
 
