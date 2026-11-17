@@ -71,8 +71,8 @@
   </ItemGroup>
   <ItemGroup>
     <!-- 4.11.0 is the last well-supported Roslyn line for net48; 5.x pulls Immutable 10.x which fails under MSTest -->
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.11.0" />
-    <PackageReference Include="System.Collections.Immutable" Version="8.0.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.12.0" />
+    <PackageReference Include="System.Collections.Immutable" Version="11.0.0" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.8">
