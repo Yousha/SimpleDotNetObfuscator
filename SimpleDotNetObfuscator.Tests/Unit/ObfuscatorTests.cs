@@ -48,11 +48,13 @@ namespace SimpleDotNetObfuscator.Tests.Unit
          try
          {
             if (Directory.Exists(_tempDir))
+            {
                Directory.Delete(_tempDir, recursive: true);
+            }
          }
          catch
          {
-            // Best-effort cleanup; do not fail the test suite on temp-file issues.
+            // Best-effort cleanup; do not fail the test suite on temp-file issues
          }
       }
 
@@ -81,6 +83,7 @@ namespace SimpleDotNetObfuscator.Tests.Unit
          string decoded = Obfuscator.DecryptString(encoded);
 
          Assert.AreEqual(string.Empty, decoded);
+         // Base64 of empty byte[] is empty string
          Assert.AreEqual(string.Empty, encoded);
       }
 
@@ -115,8 +118,8 @@ namespace SimpleDotNetObfuscator.Tests.Unit
       public void EncryptString_ProducesValidBase64()
       {
          string encoded = Obfuscator.EncryptString("abc");
+         // Must be decodable by Convert.FromBase64String without exception
          byte[] bytes = Convert.FromBase64String(encoded);
-
          Assert.IsTrue(bytes.Length > 0);
          Assert.AreEqual("abc", Obfuscator.DecryptString(encoded));
       }
@@ -157,9 +160,10 @@ class C {
 }
 ";
          WriteSampleSource(_testCsFile, source);
-         Obfuscator.ObfuscateCSFile(_testCsFile);
-         string after = File.ReadAllText(_testCsFile);
 
+         Obfuscator.ObfuscateCSFile(_testCsFile);
+
+         string after = File.ReadAllText(_testCsFile);
          Assert.AreEqual(source, after, "Original file must not be modified");
       }
 
@@ -170,11 +174,11 @@ class C {
          WriteSampleSource(_testCsFile, "class C { string S = \"Hello, World!\"; }");
          Obfuscator.ObfuscateCSFile(_testCsFile);
          string result = File.ReadAllText(_obfuscatedCsFile);
-
          Assert.IsFalse(result.Contains("\"Hello, World!\""));
          Assert.IsTrue(result.Contains("String.Intern"));
          Assert.IsTrue(result.Contains("(char)0x0048"));
       }
+
 
       [TestMethod]
       [Timeout(TIMEOUT_METHOD)]
@@ -189,9 +193,10 @@ class C {
     }
 }
 ");
-         Obfuscator.ObfuscateCSFile(_testCsFile);
-         string result = File.ReadAllText(_obfuscatedCsFile);
 
+         Obfuscator.ObfuscateCSFile(_testCsFile);
+
+         string result = File.ReadAllText(_obfuscatedCsFile);
          Assert.IsTrue(result.Contains("\"DoNotTouch\""), "const string must stay as a literal");
          Assert.IsFalse(result.Contains(Obfuscator.EncryptString("DoNotTouch")), "const value must not be Base64-encoded");
       }
@@ -207,9 +212,10 @@ class C {
     static void Main() { }
 }
 ");
-         Obfuscator.ObfuscateCSFile(_testCsFile);
-         string result = File.ReadAllText(_obfuscatedCsFile);
 
+         Obfuscator.ObfuscateCSFile(_testCsFile);
+
+         string result = File.ReadAllText(_obfuscatedCsFile);
          Assert.IsTrue(result.Contains("\"Legacy\""), "Attribute string argument must remain a literal");
       }
 
@@ -227,9 +233,10 @@ class C {
     }
 }
 ");
-         Obfuscator.ObfuscateCSFile(_testCsFile);
-         string result = File.ReadAllText(_obfuscatedCsFile);
 
+         Obfuscator.ObfuscateCSFile(_testCsFile);
+
+         string result = File.ReadAllText(_obfuscatedCsFile);
          Assert.IsTrue(result.Contains("(char)0x0041"), "Alpha must be encoded as UTF-16 code units");
          Assert.IsTrue(result.Contains("(char)0x0042"), "Beta must be encoded as UTF-16 code units");
          Assert.IsTrue(result.Contains("String.Intern"), "Encoded literals must preserve string interning");
@@ -244,10 +251,10 @@ class C {
          WriteSampleSource(_testCsFile, "class C { string path = @\"C:\\Temp\\file.txt\"; }");
          Obfuscator.ObfuscateCSFile(_testCsFile);
          string result = File.ReadAllText(_obfuscatedCsFile);
-
          Assert.IsTrue(result.Contains("(char)0x0043"));
          Assert.IsFalse(result.Contains("@\"C:\\Temp\\file.txt\""));
       }
+
 
       [TestMethod]
       [Timeout(TIMEOUT_METHOD)]
@@ -259,12 +266,70 @@ class C {
     static int Add(int x, int y) { return x + y; }
 }
 ");
+
          Obfuscator.ObfuscateCSFile(_testCsFile);
-         string result = File.ReadAllText(_obfuscatedCsFile);
 
          Assert.IsTrue(File.Exists(_obfuscatedCsFile));
+         string result = File.ReadAllText(_obfuscatedCsFile);
          Assert.IsTrue(result.Contains("Add"), "Code without string literals must still be written out");
          Assert.IsFalse(result.Contains("FromBase64String"), "No Base64 expressions expected when there are no strings");
+      }
+
+      #endregion ObfuscateCSFile
+
+      #region ObfuscateAssembly
+
+      [TestMethod]
+      [Timeout(TIMEOUT_METHOD)]
+      public void ObfuscateAssembly_CreatesCopyWithObfSuffix()
+      {
+         // The method only performs a file copy; any content is fine
+         byte[] payload = Encoding.UTF8.GetBytes("fake-assembly-content-for-test");
+         File.WriteAllBytes(_testAssemblyFile, payload);
+
+         Obfuscator.ObfuscateAssembly(_testAssemblyFile);
+
+         Assert.IsTrue(File.Exists(_obfuscatedAssemblyFile), "Expected .obf.dll to be created");
+         Assert.IsTrue(File.Exists(_testAssemblyFile), "Original assembly must remain");
+      }
+
+      [TestMethod]
+      [Timeout(TIMEOUT_METHOD)]
+      public void ObfuscateAssembly_CopyIsByteIdentical()
+      {
+         byte[] payload = new byte[] { 0x4D, 0x5A, 0x00, 0x01, 0x02, 0xFF }; // minimal fake PE header start
+         File.WriteAllBytes(_testAssemblyFile, payload);
+
+         Obfuscator.ObfuscateAssembly(_testAssemblyFile);
+
+         byte[] copied = File.ReadAllBytes(_obfuscatedAssemblyFile);
+         CollectionAssert.AreEqual(payload, copied, "Copied assembly must be byte-identical to the original");
+      }
+
+      [TestMethod]
+      [Timeout(TIMEOUT_METHOD)]
+      public void ObfuscateAssembly_ExeExtensionProducesObfExe()
+      {
+         string exePath = Path.Combine(_tempDir, "tool.exe");
+         string expectedObf = Path.Combine(_tempDir, "tool.obf.exe");
+         File.WriteAllBytes(exePath, new byte[] { 0x00, 0x01 });
+
+         Obfuscator.ObfuscateAssembly(exePath);
+
+         Assert.IsTrue(File.Exists(expectedObf), "Expected .obf.exe suffix for .exe input");
+      }
+
+      #endregion ObfuscateAssembly
+
+      #region Helpers
+
+
+      [TestMethod]
+      [Timeout(TIMEOUT_METHOD)]
+      public void EncryptDecrypt_PreservesUnpairedSurrogates()
+      {
+         string original = new string(new[] { 'A', '\uD800', 'B' });
+         Assert.AreEqual(original, Obfuscator.DecryptString(Obfuscator.EncryptString(original)));
       }
 
       [TestMethod]
@@ -274,7 +339,6 @@ class C {
          WriteSampleSource(_testCsFile, "class C { static void M(string value) { switch(value) { case \"one\": goto case \"two\"; case \"two\": break; } } }");
          Obfuscator.ObfuscateCSFile(_testCsFile);
          string result = File.ReadAllText(_obfuscatedCsFile);
-
          Assert.IsTrue(result.Contains("goto case \"two\""));
       }
 
@@ -285,7 +349,6 @@ class C {
          WriteSampleSource(_testCsFile, "#if DEBUG && FEATURE\nclass C { string A = \"debug-value\"; }\n#else\nclass C { string A = \"release-value\"; }\n#endif");
          Obfuscator.ObfuscateCSFile(_testCsFile);
          string result = File.ReadAllText(_obfuscatedCsFile);
-
          Assert.IsFalse(result.Contains("\"debug-value\""));
          Assert.IsFalse(result.Contains("\"release-value\""));
          Assert.IsTrue(result.Contains("(char)0x0064"));
@@ -299,7 +362,6 @@ class C {
          WriteSampleSource(_testCsFile, "class C { static bool M() { string a = \"same\"; string b = \"same\"; return object.ReferenceEquals(a, b); } }");
          Obfuscator.ObfuscateCSFile(_testCsFile);
          string result = File.ReadAllText(_obfuscatedCsFile);
-
          Assert.IsTrue(result.Contains("String.Intern"));
       }
 
@@ -310,7 +372,6 @@ class C {
          WriteSampleSource(_testCsFile, "using System; using System.Linq; using System.Linq.Expressions; class C { Expression<Func<string, bool>> E = x => x == \"query-value\"; }");
          Obfuscator.ObfuscateCSFile(_testCsFile);
          string result = File.ReadAllText(_obfuscatedCsFile);
-
          Assert.IsTrue(result.Contains("\"query-value\""));
       }
 
@@ -322,19 +383,11 @@ class C {
          byte[] source = File.ReadAllBytes(_testCsFile);
          Obfuscator.ObfuscateCSFile(_testCsFile);
          byte[] output = File.ReadAllBytes(_obfuscatedCsFile);
-
          Assert.AreEqual(source[0], output[0]);
          Assert.AreEqual(source[1], output[1]);
          Assert.AreEqual(source[2], output[2]);
       }
 
-      [TestMethod]
-      [Timeout(TIMEOUT_METHOD)]
-      public void ObfuscateCSFile_PreservesUnpairedSurrogates()
-      {
-         string original = new string(new[] { 'A', '\\uD800', 'B' });
-         Assert.AreEqual(original, Obfuscator.DecryptString(Obfuscator.EncryptString(original)));
-      }
 
       [TestMethod]
       [Timeout(TIMEOUT_METHOD)]
@@ -362,7 +415,6 @@ class C {
          int exitCode = SimpleDotNetObfuscator.Program.Main(new[] {
             Path.Combine(_tempDir, "missing.cs"), _testCsFile
          });
-
          Assert.AreNotEqual(0, exitCode);
          Assert.IsTrue(File.Exists(_obfuscatedCsFile));
       }
@@ -375,6 +427,7 @@ class C {
          Assert.AreEqual(assemblyVersion, SimpleDotNetObfuscator.Libraries.Constants.VERSION);
       }
 
+
       [TestMethod]
       [Timeout(TIMEOUT_METHOD)]
       public void ObfuscateCSFile_PreservesLegacySystemEncoding()
@@ -383,10 +436,10 @@ class C {
          File.WriteAllBytes(_testCsFile, source);
          Obfuscator.ObfuscateCSFile(_testCsFile);
          string output = Encoding.Default.GetString(File.ReadAllBytes(_obfuscatedCsFile));
-
          Assert.IsTrue(output.Contains("(char)0x00E9"));
          Assert.IsFalse(output.Contains("\"café\""));
       }
+
 
       [TestMethod]
       [Timeout(TIMEOUT_METHOD)]
@@ -396,63 +449,20 @@ class C {
          Obfuscator.ObfuscateCSFile(_testCsFile);
          using (var provider = new CSharpCodeProvider())
          {
-            var parameters = new CompilerParameters
-            {
-               GenerateExecutable = false,
-               GenerateInMemory = true
-            };
+            var parameters = new CompilerParameters();
+            parameters.GenerateExecutable = false;
+            parameters.GenerateInMemory = true;
             parameters.ReferencedAssemblies.Add("System.dll");
             CompilerResults results = provider.CompileAssemblyFromFile(parameters, _obfuscatedCsFile);
-
             Assert.IsFalse(results.Errors.HasErrors, results.Errors.HasErrors ? results.Errors[0].ToString() : string.Empty);
          }
       }
-
-      #endregion ObfuscateCSFile
-
-      #region ObfuscateAssembly
-
-      [TestMethod]
-      [Timeout(TIMEOUT_METHOD)]
-      public void ObfuscateAssembly_CreatesCopyWithObfSuffix()
-      {
-         byte[] payload = Encoding.UTF8.GetBytes("fake-assembly-content-for-test");
-         File.WriteAllBytes(_testAssemblyFile, payload);
-         Obfuscator.ObfuscateAssembly(_testAssemblyFile);
-
-         Assert.IsTrue(File.Exists(_obfuscatedAssemblyFile), "Expected .obf.dll to be created");
-         Assert.IsTrue(File.Exists(_testAssemblyFile), "Original assembly must remain");
-      }
-
-      [TestMethod]
-      [Timeout(TIMEOUT_METHOD)]
-      public void ObfuscateAssembly_CopyIsByteIdentical()
-      {
-         byte[] payload = new byte[] { 0x4D, 0x5A, 0x00, 0x01, 0x02, 0xFF };
-         File.WriteAllBytes(_testAssemblyFile, payload);
-         Obfuscator.ObfuscateAssembly(_testAssemblyFile);
-         byte[] copied = File.ReadAllBytes(_obfuscatedAssemblyFile);
-
-         CollectionAssert.AreEqual(payload, copied, "Copied assembly must be byte-identical to the original");
-      }
-
-      [TestMethod]
-      [Timeout(TIMEOUT_METHOD)]
-      public void ObfuscateAssembly_ExeExtensionProducesObfExe()
-      {
-         string exePath = Path.Combine(_tempDir, "tool.exe");
-         string expectedObf = Path.Combine(_tempDir, "tool.obf.exe");
-         File.WriteAllBytes(exePath, new byte[] { 0x00, 0x01 });
-         Obfuscator.ObfuscateAssembly(exePath);
-
-         Assert.IsTrue(File.Exists(expectedObf), "Expected .obf.exe suffix for .exe input");
-      }
-
-      #endregion ObfuscateAssembly
 
       private static void WriteSampleSource(string path, string content)
       {
          File.WriteAllText(path, content, Encoding.UTF8);
       }
+
+      #endregion Helpers
    }
 }
