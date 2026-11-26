@@ -180,6 +180,8 @@ class C {
       }
 
 
+      [TestMethod]
+      [Timeout(TIMEOUT_METHOD)]
       public void ObfuscateCSFile_PreservesConstString()
       {
          WriteSampleSource(_testCsFile, @"
@@ -254,6 +256,8 @@ class C {
       }
 
 
+      [TestMethod]
+      [Timeout(TIMEOUT_METHOD)]
       public void ObfuscateCSFile_SourceWithNoStrings_StillProducesOutput()
       {
          WriteSampleSource(_testCsFile, @"
